@@ -1,0 +1,120 @@
+@startuml Diagramme de Classes - Sénégal Vote
+
+title Diagramme de Classes\nSénégal Vote - Base de Données
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+
+class Electeur {
+  +id: INTEGER <<PK>>
+  +prenom: VARCHAR(100)
+  +nom: VARCHAR(100)
+  +date_naissance: DATE
+  +adresse: VARCHAR(255)
+  +region: VARCHAR(100)
+  +departement: VARCHAR(100)
+  +centre_vote: VARCHAR(150)
+  +bureau_vote: VARCHAR(20)
+  +numero_cni: VARCHAR(20) <<UNIQUE>>
+  +telephone: VARCHAR(20)
+  +email: VARCHAR(150)
+  +code_electoral: VARCHAR(20) <<UNIQUE>>
+  +empreinte_id: INTEGER <<UNIQUE>>
+  +photo_url: VARCHAR(255)
+  +a_vote: BOOLEAN
+  +methode_vote: ENUM('en_ligne','arduino')
+  +date_vote: DATETIME
+  +statut: ENUM('actif','inactif','suspendu')
+  +created_at: DATETIME
+  +updated_at: DATETIME
+  ---
+  +verifierAge(): boolean
+}
+
+class Candidat {
+  +id: INTEGER <<PK>>
+  +prenom: VARCHAR(100)
+  +nom: VARCHAR(100)
+  +parti: VARCHAR(200)
+  +slogan: VARCHAR(255)
+  +programme: TEXT
+  +photo_url: VARCHAR(255)
+  +couleur: VARCHAR(7)
+  +numero_ordre: INTEGER <<UNIQUE>>
+  +nombre_votes: INTEGER
+  +statut: ENUM('actif','retire','disqualifie')
+  +election_id: INTEGER <<FK>>
+  +created_at: DATETIME
+  +updated_at: DATETIME
+}
+
+class Vote {
+  +id: INTEGER <<PK>>
+  +electeur_id: INTEGER <<FK>> <<UNIQUE>>
+  +candidat_id: INTEGER <<FK>>
+  +methode: ENUM('en_ligne','arduino')
+  +ip_address: VARCHAR(45)
+  +device_id: VARCHAR(100)
+  +departement_vote: VARCHAR(100)
+  +centre_vote: VARCHAR(150)
+  +bureau_vote: VARCHAR(20)
+  +hash_vote: VARCHAR(255)
+  +date_vote: DATETIME
+  +created_at: DATETIME
+  +updated_at: DATETIME
+}
+
+class OTP {
+  +id: INTEGER <<PK>>
+  +electeur_id: INTEGER <<FK>>
+  +code: VARCHAR(6)
+  +type: ENUM('authentification')
+  +expire_at: DATETIME
+  +utilise: BOOLEAN
+  +tentatives: INTEGER
+  +created_at: DATETIME
+  +updated_at: DATETIME
+  ---
+  +estExpire(): boolean
+  +verifierCode(code): boolean
+}
+
+class Election {
+  +id: INTEGER <<PK>>
+  +titre: VARCHAR(200)
+  +description: TEXT
+  +type: ENUM('presidentielle','legislative','locale')
+  +date_debut: DATETIME
+  +date_fin: DATETIME
+  +statut: ENUM('a_venir','en_cours','terminee','annulee')
+  +total_inscrits: INTEGER
+  +total_votants: INTEGER
+  +created_at: DATETIME
+  +updated_at: DATETIME
+  ---
+  +estEnCours(): boolean
+}
+
+class Admin {
+  +id: INTEGER <<PK>>
+  +prenom: VARCHAR(100)
+  +nom: VARCHAR(100)
+  +email: VARCHAR(150) <<UNIQUE>>
+  +password: VARCHAR(255)
+  +role: ENUM('super_admin','admin','observateur','president_centre')
+  +departement: VARCHAR(100)
+  +centre_vote: VARCHAR(150)
+  +statut: ENUM('actif','inactif')
+  +created_at: DATETIME
+  +updated_at: DATETIME
+  ---
+  +verifierPassword(pwd): boolean
+}
+
+' === RELATIONS ===
+Electeur "1" -- "0..1" Vote : effectue >
+Candidat "1" -- "0..*" Vote : reçoit >
+Electeur "1" -- "0..*" OTP : possède >
+Election "1" -- "1..*" Candidat : contient >
+
+@enduml

@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/* ==================== SENEGAL VOTE - CUSTOM STYLES ==================== */
+
+:root {
+  --vert-senegal: #007B3A;
+  --jaune-senegal: #FDEF42;
+  --rouge-senegal: #E31B23;
+  --vert-fonce: #005A2B;
+  --vert-clair: #00A651;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Scrollbar personnalisee */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--vert-senegal);
+  border-radius: 4px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 123, 58, 0.4); }
+  50% { box-shadow: 0 0 0 15px rgba(0, 123, 58, 0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out forwards;
+}
+
+.pulse-green {
+  animation: pulse-green 2s infinite;
+}
+
+/* Gradient Senegal */
+.gradient-senegal {
+  background: linear-gradient(135deg, #007B3A 0%, #00A651 50%, #FDEF42 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, #007B3A 0%, #005A2B 60%, #003D1A 100%);
+}
+
+/* Boutons */
+.btn-senegal {
+  background: linear-gradient(135deg, #007B3A 0%, #00A651 100%);
+  color: white;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-senegal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 123, 58, 0.3);
+}
+
+.btn-senegal-outline {
+  background: transparent;
+  color: #007B3A;
+  border: 2px solid #007B3A;
+  padding: 10px 30px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-senegal-outline:hover {
+  background: #007B3A;
+  color: white;
+}
+
+/* Cards */
+.card-hover {
+  transition: all 0.3s ease;
+}
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* OTP Input */
+.otp-input {
+  width: 50px;
+  height: 60px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+.otp-input:focus {
+  border-color: #007B3A;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 58, 0.2);
+}

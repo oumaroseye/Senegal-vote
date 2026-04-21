@@ -1,0 +1,80 @@
+@startuml Diagramme de Séquence - Vote Arduino
+
+title Diagramme de Séquence\nProcessus de Vote par Empreinte Digitale (Arduino)
+
+skinparam sequenceArrowThickness 2
+
+actor "Électeur" as E #FDEF42
+participant "Arduino\n+ Capteur" as A #FF9800
+participant "Écran LCD\n+ Boutons" as LCD #4CAF50
+participant "Backend\nAPI REST" as B #2196F3
+database "MySQL" as DB #E91E63
+
+== Phase 1: Identification par Empreinte ==
+
+E -> A: Place le doigt sur le capteur
+A -> A: Capture empreinte digitale
+A -> A: Recherche dans mémoire locale\n(finger.fingerSearch())
+
+alt Empreinte trouvée localement
+  A -> LCD: Affiche "Vérification..."
+  A -> B: POST /api/arduino/verify-fingerprint\n{empreinte_id, device_id}\nHeader: X-API-Key
+  
+  B -> DB: SELECT * FROM electeurs\nWHERE empreinte_id = ?
+  
+  alt Électeur trouvé et n'a pas voté
+    DB --> B: Électeur (a_vote = false)
+    B --> A: {success, electeur_id, prenom, nom}
+    A -> LCD: "Bienvenue, [Prénom Nom]"
+  else Électeur a déjà voté
+    B --> A: {error: "Déjà voté", code: "DEJA_VOTE"}
+    A -> LCD: "Vous avez déjà voté!"
+    A -> A: LED rouge + buzzer
+    A -> LCD: Retour écran d'accueil
+  else Empreinte non reconnue
+    B --> A: {error, code: "EMPREINTE_INCONNUE"}
+    A -> LCD: "Empreinte non reconnue"
+    A -> A: LED rouge + buzzer
+  end
+  
+else Empreinte non trouvée localement
+  A -> LCD: "Empreinte NON reconnue!"
+  A -> A: LED rouge + buzzer
+  A -> LCD: Retour écran d'accueil
+end
+
+== Phase 2: Choix du Candidat ==
+
+A -> LCD: Affiche liste des candidats\n"1. Candidat A\n2. Candidat B\n3. Candidat C"
+
+E -> A: Appuie sur bouton N° (1-5)
+A -> LCD: "Vous votez pour:\n[Nom Candidat]\nBtn1=OUI  Btn5=NON"
+
+alt Confirme (Bouton 1)
+  E -> A: Appuie sur Bouton 1 (OUI)
+  
+  == Phase 3: Enregistrement du Vote ==
+  
+  A -> LCD: "Enregistrement..."
+  A -> B: POST /api/arduino/vote\n{empreinte_id, candidat_id, device_id}\nHeader: X-API-Key
+  
+  B -> DB: BEGIN TRANSACTION
+  B -> DB: SELECT electeur WHERE empreinte_id
+  B -> DB: INSERT INTO votes
+  B -> DB: UPDATE electeurs SET a_vote = true
+  B -> DB: UPDATE candidats SET nombre_votes += 1
+  B -> DB: COMMIT
+  
+  B --> A: {success, hash_vote}
+  
+  A -> LCD: "MERCI !\nVote enregistré\navec succès!"
+  A -> A: LED verte + 3 bips
+  A -> A: Attente 5 secondes
+  A -> LCD: Retour écran d'accueil
+  
+else Annule (Bouton 5)
+  E -> A: Appuie sur Bouton 5 (NON)
+  A -> LCD: Retour liste candidats
+end
+
+@enduml

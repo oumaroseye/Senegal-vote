@@ -1,0 +1,53 @@
+@startuml Diagramme de Déploiement
+
+title Diagramme de Déploiement\nSénégal Vote - Architecture Technique
+
+skinparam nodeStyle rectangle
+
+node "Poste Électeur" as PE {
+  component "Navigateur Web\n(Chrome/Firefox)" as NW
+}
+
+node "Bureau de Vote" as BV {
+  component "Arduino Mega/ESP32" as ARD {
+    component "Capteur Empreinte\nAS608" as CE
+    component "Écran LCD\nI2C 20x4" as LCD
+    component "Module WiFi\nESP8266" as WIFI
+    component "Boutons\n(5x)" as BTN
+  }
+}
+
+node "Serveur Application" as SA {
+  component "Frontend\nReact.js + Vite\n(Port 5173)" as FE
+  component "Backend\nExpress.js\n(Port 5000)" as BE {
+    component "API REST" as API
+    component "Auth JWT" as JWT
+    component "OTP Service" as OTPS
+  }
+}
+
+node "Serveur Base de Données" as SDB {
+  database "MySQL 8.0\n(Sequelize ORM)" as DB {
+    collections "electeurs" as T1
+    collections "candidats" as T2
+    collections "votes" as T3
+    collections "otps" as T4
+    collections "elections" as T5
+    collections "admins" as T6
+  }
+}
+
+cloud "Services Externes" as SE {
+  component "Service SMS\n(Twilio/Orange)" as SMS
+  component "Service Email\n(SMTP)" as EMAIL
+}
+
+' Relations
+PE --> FE : HTTPS
+FE --> API : HTTP/JSON\n(Proxy Vite)
+API --> DB : Sequelize\n(TCP 3306)
+ARD --> API : HTTP/JSON\n(WiFi)\nX-API-Key
+OTPS --> SMS : API REST
+OTPS --> EMAIL : SMTP
+
+@enduml

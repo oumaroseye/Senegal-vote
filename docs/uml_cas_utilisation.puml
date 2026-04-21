@@ -1,0 +1,74 @@
+@startuml Diagramme de Cas d'Utilisation - Sénégal Vote
+
+title Diagramme de Cas d'Utilisation\nSénégal Vote - Plateforme de Vote Électronique
+
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+actor "Électeur\n(en ligne)" as EL #007B3A
+actor "Électeur\n(Arduino)" as EA #FDEF42
+actor "Administrateur" as AD #E31B23
+actor "Président de\ncentre" as PC #8A2BE2
+actor "Système OTP\n(SMS/Email)" as OTP #1E90FF
+
+rectangle "Sénégal Vote" {
+  ' === Cas d'utilisation Électeur en ligne ===
+  usecase "S'authentifier\n(CNI + Tel + Code)" as UC1
+  usecase "Recevoir code OTP" as UC2
+  usecase "Saisir code OTP" as UC3
+  usecase "Consulter liste\ncandidats" as UC4
+  usecase "Voter pour\nun candidat" as UC5
+  usecase "Confirmer vote\n(automatique)" as UC6
+  usecase "Consulter résultats" as UC7
+  usecase "Consulter guide\nélecteur" as UC8
+
+  ' === Cas d'utilisation Arduino ===
+  usecase "S'identifier par\nempreinte digitale" as UC9
+  usecase "Sélectionner candidat\n(bouton physique)" as UC10
+  usecase "Confirmer vote\n(Arduino)" as UC11
+
+  ' === Cas d'utilisation Admin ===
+  usecase "Se connecter\n(Email + MDP)" as UC12
+  usecase "Gérer électeurs\n(CRUD)" as UC13
+  usecase "Gérer candidats" as UC14
+  usecase "Consulter tableau\nde bord" as UC15
+  usecase "Voir résultats\nen temps réel" as UC16
+  usecase "Créer une élection" as UC17
+  usecase "Enregistrer\nempreinte digitale" as UC18
+  usecase "Affecter électeur à\nDépartement/Centre/Bureau" as UC19
+  usecase "Consulter votes\npar bureau du centre" as UC20
+}
+
+' Relations Électeur en ligne
+EL --> UC1
+EL --> UC4
+EL --> UC5
+EL --> UC7
+EL --> UC8
+UC1 ..> UC2 : <<include>>
+UC2 ..> UC3 : <<include>>
+UC5 ..> UC6 : <<include>>
+
+' Relations OTP
+OTP --> UC2
+
+' Relations Électeur Arduino
+EA --> UC9
+EA --> UC10
+UC9 ..> UC11 : <<include>>
+UC10 ..> UC11 : <<include>>
+
+' Relations Admin
+AD --> UC12
+AD --> UC13
+AD --> UC14
+AD --> UC15
+AD --> UC16
+AD --> UC17
+AD --> UC18
+AD --> UC19
+PC --> UC12
+PC --> UC20
+
+@enduml

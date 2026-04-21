@@ -1,0 +1,93 @@
+@startuml Diagramme de Séquence - Vote en Ligne
+
+title Diagramme de Séquence\nProcessus de Vote en Ligne
+
+skinparam sequenceArrowThickness 2
+skinparam sequenceMessageAlign center
+
+actor "Électeur" as E #007B3A
+participant "Frontend\nReact.js" as F #4FC3F7
+participant "Backend\nExpress.js" as B #FF9800
+database "MySQL" as DB #E91E63
+participant "Service\nSMS/Email" as S #9C27B0
+
+== Phase 1: Authentification ==
+
+E -> F: Accède au site /login
+F -> F: Affiche formulaire d'authentification
+
+E -> F: Saisit CNI + Téléphone + Code Électoral
+F -> B: POST /api/auth/verify\n{numero_cni, telephone, code_electoral}
+
+B -> DB: SELECT * FROM electeurs\nWHERE numero_cni AND telephone AND code_electoral
+DB --> B: Électeur trouvé
+
+B -> B: Génère code OTP (6 chiffres)
+B -> DB: INSERT INTO otps (code, type='authentification')
+B -> S: Envoyer SMS + Email avec OTP
+S --> B: OK
+
+B --> F: {success, tempToken, prenom, telephone_masque}
+F --> E: Affiche écran OTP
+
+== Phase 2: Vérification OTP ==
+
+E -> F: Saisit le code OTP reçu
+F -> B: POST /api/auth/verify-otp\n{code} + Authorization: tempToken
+
+B -> DB: SELECT * FROM otps\nWHERE electeur_id AND type='authentification'
+DB --> B: OTP trouvé
+
+alt Code OTP valide
+  B -> DB: UPDATE otps SET utilise = true
+  B -> B: Génère JWT token (24h)
+  B --> F: {success, token, electeur}
+  F --> E: Redirection vers /vote
+else Code OTP invalide
+  B -> DB: UPDATE otps SET tentatives += 1
+  B --> F: {error: "Code incorrect"}
+  F --> E: Affiche erreur
+end
+
+== Phase 3: Choix du Candidat ==
+
+F -> B: GET /api/vote/candidats\n+ Authorization: JWT
+B -> DB: SELECT * FROM candidats\nWHERE statut = 'actif'
+DB --> B: Liste des candidats
+B --> F: {candidats[]}
+F --> E: Affiche les candidats
+
+E -> F: Sélectionne un candidat
+F -> B: POST /api/vote/select\n{candidat_id}
+
+B -> B: Génère code OTP confirmation
+B -> DB: INSERT INTO otps (type='confirmation_vote')
+B -> S: Envoyer SMS + Email avec OTP
+S --> B: OK
+B --> F: {success, "Code de confirmation envoyé"}
+F --> E: Affiche écran OTP confirmation
+
+== Phase 4: Confirmation du Vote ==
+
+E -> F: Saisit le code OTP de confirmation
+F -> B: POST /api/vote/confirm\n{candidat_id, otp_code}
+
+B -> DB: BEGIN TRANSACTION
+B -> DB: Vérifier électeur (a_vote = false)
+B -> DB: Vérifier OTP confirmation
+B -> B: Génère hash SHA-256
+
+alt Vote réussi
+  B -> DB: INSERT INTO votes\n(electeur_id, candidat_id, hash_vote)
+  B -> DB: UPDATE electeurs\nSET a_vote = true
+  B -> DB: UPDATE candidats\nSET nombre_votes += 1
+  B -> DB: COMMIT
+  B --> F: {success, hash_vote, date_vote}
+  F --> E: Affiche confirmation + reçu de vote
+else Erreur
+  B -> DB: ROLLBACK
+  B --> F: {error}
+  F --> E: Affiche erreur
+end
+
+@enduml

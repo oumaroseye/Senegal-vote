@@ -1,0 +1,55 @@
+@startuml Diagramme d'Activité - Authentification
+
+title Diagramme d'Activité\nProcessus d'Authentification Électeur
+
+start
+
+:Accéder à la page de connexion;
+
+:Saisir numéro CNI;
+:Saisir numéro de téléphone;
+:Saisir code électoral;
+:Cliquer sur "Vérifier";
+
+:Envoyer les identifiants au serveur;
+
+if (Identifiants valides ?) then (oui)
+  if (Électeur a déjà voté ?) then (oui)
+    :Afficher "Vous avez déjà voté";
+    stop
+  else (non)
+    :Générer code OTP (6 chiffres);
+    
+    fork
+      :Envoyer OTP par SMS;
+    fork again
+      :Envoyer OTP par Email;
+    end fork
+    
+    :Afficher écran de saisie OTP;
+    :Saisir le code OTP;
+    
+    if (Code OTP valide ?) then (oui)
+      :Générer token JWT;
+      :Rediriger vers la page de vote;
+      :Authentification réussie!;
+    else (non)
+      :Incrémenter tentatives;
+      if (Tentatives >= 3 ?) then (oui)
+        :Invalider l'OTP;
+        :Afficher "Trop de tentatives";
+        :Retour à l'identification;
+      else (non)
+        :Afficher erreur + tentatives restantes;
+        :Permettre nouvelle saisie;
+      endif
+    endif
+  endif
+else (non)
+  :Afficher "Identifiants invalides";
+  :Retour au formulaire;
+endif
+
+stop
+
+@enduml
